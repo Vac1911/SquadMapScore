@@ -14,7 +14,13 @@ export default class SquadLayerScore extends SquadLayersClass {
     super();
 
     this.options = Object.assign(options, {
-      maxHistoryLength: 32
+      maxHistoryLength: 32,
+      weights: {
+        gamemodeScore: 1,
+        mapScore: 1,
+        sizeScore: 1,
+        factionScore: 1,
+      }
     })
 
     this.history = server.layerHistory.slice(0, Math.min(server.layerHistory.length, this.options.maxHistoryLength)).map( lay => this.normalizeLayer(lay) );
@@ -28,10 +34,10 @@ export default class SquadLayerScore extends SquadLayersClass {
     const options = this.getNormalLayers().map((layer, i) => {
       let score = {
         name: layer.layerClassname,
-        gamemodeScore: this.gamemodeRepetitivenessScore(layer.gamemode),
-        mapScore: this.mapRepetitivenessScore(layer.map),
-        sizeScore: this.sizeRepetitivenessScore(layer.mapSize),
-        factionScore: (this.factionRepetitivenessScore(layer.teamOne.faction) + this.factionRepetitivenessScore(layer.teamTwo.faction)),
+        gamemodeScore: this.gamemodeRepetitivenessScore(layer.gamemode) * this.options.weights.gamemodeScore,
+        mapScore: this.mapRepetitivenessScore(layer.map) * this.options.weights.mapScore,
+        sizeScore: this.sizeRepetitivenessScore(layer.mapSize) * this.options.weights.sizeScore,
+        factionScore: (this.factionRepetitivenessScore(layer.teamOne.faction) + this.factionRepetitivenessScore(layer.teamTwo.faction)) / 2 * this.options.weights.factionScore,
       }
       score.sum = (score.gamemodeScore + score.mapScore + score.sizeScore + score.factionScore) / 4
       return score;
